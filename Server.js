@@ -19,8 +19,6 @@ app.use(cors())
 app.use(express.json())
 
 app.use('/Auth',require('./Router/Router'))
-
-app.listen(PORT,() =>{
-  
-    console.log(`Server is Running... ${PORT} `);
-  })
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT}`);
+});
