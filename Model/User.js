@@ -53,9 +53,10 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
-  verified: {
-    type: Boolean,
-    default: false,
+  // Added purchasedCourses field
+  purchasedCourses: {
+    type: [Number],  // Array to store course IDs
+    default: [],     // Default to an empty array if no courses have been purchased
   },
 });
 
