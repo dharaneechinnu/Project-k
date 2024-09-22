@@ -9,7 +9,7 @@ const MONGODB_URL = process.env.MONGO_URL;
 // Import routes
 const paymentRoutes = require('./Router/Payment');
 const authRoutes = require('./Router/Router');
-
+const QuestionRoute = require('./Router/Question')
 // Initialize Express app
 const app = express();
 
@@ -25,6 +25,7 @@ app.use(express.json());
 // API routes
 app.use('/Auth', authRoutes);
 app.use('/payment', paymentRoutes);
+app.use('/api', QuestionRoute);
 
 app.post('/upload-course', async (req, res) => {
   const { courseId, courseName, courseDescription, subjectId, amount, imageUrl } = req.body;

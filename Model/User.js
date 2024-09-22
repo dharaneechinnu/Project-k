@@ -1,4 +1,3 @@
-// userModel.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -53,10 +52,16 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
-  // Added purchasedCourses field
   purchasedCourses: {
     type: [Number],  // Array to store course IDs
     default: [],     // Default to an empty array if no courses have been purchased
+  },
+  // Added role-based access control
+  role: {
+    type: String,
+    role: ['admin', 'student'], // Possible roles
+    default: 'student',  // Default role is student
+    required: true,
   },
 });
 
