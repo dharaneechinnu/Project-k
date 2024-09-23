@@ -8,3 +8,4 @@ router.route('/get-course/:courseId').get(PaymentController.purchaseDetail); // 
 router.route('/purchased-courses/:studentId').get(PaymentController.getPurchasedCourses);
 
 module.exports = router;
+    

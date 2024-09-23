@@ -68,7 +68,7 @@ const getQuestions = async (req, res) => {
     console.log(courseId)
     const questions = await Question.find({ courseId }); // Query with the string
     res.json(questions);
-    console.log(questions)
+   
   } catch (error) {
     console.error('Error fetching questions:', error);
     res.status(500).json({ message: 'Error fetching questions' });
@@ -76,14 +76,18 @@ const getQuestions = async (req, res) => {
 };
 
 
-// Controller to submit responses
 const submitResponses = async (req, res) => {
   try {
-    const { responses } = req.body;
+    const { responses, studentId } = req.body; // Extract studentId from request body
+
+    // Debugging statement
+    console.log('User ID from token:', req.user);
+    console.log('Received studentId:', studentId); // Log the received studentId
+
     const newResponse = new Response({
       courseId: req.params.courseId,
-      studentId: req.user.id, // Assuming user authentication is in place
-      responses
+      studentId, // Use the studentId from the request body
+      responses,
     });
 
     await newResponse.save();
@@ -94,11 +98,30 @@ const submitResponses = async (req, res) => {
   }
 };
 
+const hasSubmittedResponses = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const studentId = req.user._id; // Get student ID from the token
+
+    const response = await Response.findOne({ courseId, studentId });
+
+    if (response) {
+      return res.status(200).json({ hasSubmitted: true });
+    } else {
+      return res.status(200).json({ hasSubmitted: false });
+    }
+  } catch (error) {
+    console.error('Error checking submission:', error);
+    res.status(500).send('Server error');
+  }
+};
+
 module.exports = {
   addQuestion,
   getQuestionsByCourse,
   editQuestion,
   deleteQuestion,
   getQuestions,
-  submitResponses
+  submitResponses,
+  hasSubmittedResponses
 };
