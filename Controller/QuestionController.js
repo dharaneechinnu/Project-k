@@ -97,11 +97,12 @@ const submitResponses = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
-
 const hasSubmittedResponses = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const studentId = req.user._id; // Get student ID from the token
+    const { studentId } = req.body; // Get studentId from the request body
+
+    console.log("student id : ", studentId);
 
     const response = await Response.findOne({ courseId, studentId });
 
@@ -115,6 +116,7 @@ const hasSubmittedResponses = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
 
 module.exports = {
   addQuestion,

@@ -28,6 +28,6 @@ router.get('/courses/:courseId/questions', getQuestions); // Protect this route
 
 // Submit responses (protected)
 router.post('/courses/:courseId/submit-responses', verifyToken, submitResponses);
-router.get('/api/courses/:courseId/has-submitted', hasSubmittedResponses);
+router.post('/courses/:courseId/has-submitted', hasSubmittedResponses);
 
 module.exports = router;

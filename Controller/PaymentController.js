@@ -112,6 +112,19 @@ const getPurchasedCourses = async (req, res) => {
     res.status(500).send({ message: 'Failed to fetch purchased courses.' });
   }
 };
+const getPurchased = async (req, res) => {
+  const { studentId } = req.params;
+
+  try {
+    const transactions = await Transaction.find({ studentId });
+  
+    res.status(200).json(transactions);
+  } catch (error) {
+    console.error('Error fetching purchased courses', error);
+    res.status(500).send({ message: 'Failed to fetch purchased courses.' });
+  }
+};
 
 
-module.exports = { createCourse, verifyPayment, purchaseDetail,getPurchasedCourses };
+
+module.exports = { createCourse, verifyPayment, purchaseDetail,getPurchasedCourses,getPurchased };
