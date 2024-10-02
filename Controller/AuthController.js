@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const PASS = process.env.PASS;
 const nodemailer = require('nodemailer');
 
+
+
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -94,7 +96,6 @@ const register = async (req, res) => {
   };
   
 
-
 const gtpOtps = async (req, res) => {
     function generateOTP() {
         return Math.floor(1000 + Math.random() * 9000).toString();
@@ -158,6 +159,8 @@ const gtpOtps = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+
 const Verifyotp = async (req, res) => {
     try {
         const { email, otp } = req.body;
@@ -257,6 +260,7 @@ const resetPassword = async(req,res) =>{
     }
 } 
 
+
 const respassword = async (req, res) => {
     const { token, pwd } = req.body;
     if (!token || !pwd) {
@@ -291,5 +295,8 @@ const respassword = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+
+  
 
 module.exports ={login,register,gtpOtps,resetPassword,Verifyotp,respassword}

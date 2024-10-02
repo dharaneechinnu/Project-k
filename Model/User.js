@@ -59,7 +59,7 @@ const userSchema = new mongoose.Schema({
   // Added role-based access control
   role: {
     type: String,
-    role: ['admin', 'student'], // Possible roles
+    role: ['student'], // Possible roles
     default: 'student',  // Default role is student
     required: true,
   },

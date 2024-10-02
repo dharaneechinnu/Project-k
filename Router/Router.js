@@ -11,4 +11,5 @@ router.route('/reset-password').post(require('../Controller/AuthController').res
 router.route('/resetpass-otp').patch(require('../Controller/AuthController').respassword);
 
 
+
 module.exports = router;
