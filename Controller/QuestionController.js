@@ -1,34 +1,87 @@
 const Question = require('../Model/Question'); // Assuming you have a Question model
-const Response = require('../Model/responseSchema ')
-// Add a new question
+const Response = require('../Model/responseSchema ');
+
+
+// Add new questions
 const addQuestion = async (req, res) => {
   try {
-    const { courseId, questionText, questionType, options } = req.body;
-    const newQuestion = new Question({
-      courseId,
-      questionText,
-      questionType,
-      options
-    });
-    await newQuestion.save();
-    res.status(201).json(newQuestion);
+    const { courseId, questions } = req.body;
+
+    // Validate courseId and questions
+    if (!courseId) {
+      throw new Error("courseId is required.");
+    }
+    if (!questions || !Array.isArray(questions) || questions.length === 0) {
+      throw new Error("Questions must be a non-empty array.");
+    }
+
+    // Iterate over each question and create a new Question document
+    const newQuestions = await Promise.all(questions.map(async (question) => {
+      const { questionText, answerType, options } = question;
+
+      // Debugging statements to verify incoming data
+      console.log('Received question:', question);
+
+      // Ensure questionText and answerType are provided
+      if (!questionText || !answerType) {
+        throw new Error("Each question must have a questionText and answerType.");
+      }
+
+      // Handle different question types
+      let formattedOptions = [];
+      if (answerType === 'multiple-choice') {
+        if (!Array.isArray(options) || options.length < 2) {
+          throw new Error("Multiple-choice questions must have at least two options.");
+        }
+        formattedOptions = options.map((opt) => ({
+          optionText: opt.optionText || 'Option', // Ensure each option has a text value
+        }));
+      } else if (answerType === 'yes-no') {
+        formattedOptions = [{ optionText: 'Yes' }, { optionText: 'No' }];
+      }
+
+      // Create and save the new question
+      const newQuestion = new Question({
+        courseId,
+        questionText,
+        answerType, // Use the correct field name 'answerType'
+        options: formattedOptions,
+      });
+
+      return await newQuestion.save();
+    }));
+
+    res.status(201).json(newQuestions);
   } catch (error) {
-    console.error('Error adding question:', error);
-    res.status(500).json({ message: 'Failed to add question' });
+    console.error('Error adding questions:', error);
+    res.status(500).json({ message: 'Failed to add questions', error: error.message });
   }
 };
 
-// Get questions by course ID
 const getQuestionsByCourse = async (req, res) => {
   try {
-    const { courseId } = req.params;
-    const questions = await Question.find({ courseId });
-    res.json(questions);
+    const courseId = req.params.courseId; // Use the courseId from request parameters
+    const questions = await Question.find({ courseId }); // Query with the courseId
+
+    if (!questions) {
+      return res.status(404).json({ message: 'No questions found for this course' });
+    }
+
+    // Format the questions with required details
+    const formattedQuestions = questions.map(question => ({
+      _id: question._id,
+      questionText: question.questionText,
+      questionType: question.answerType,
+      options: question.options.map(opt => opt.optionText), // Extract option text
+    }));
+
+    res.json(formattedQuestions); // Send formatted questions back to the client
   } catch (error) {
     console.error('Error fetching questions:', error);
-    res.status(500).json({ message: 'Failed to fetch questions' });
+    res.status(500).json({ message: 'Error fetching questions' });
   }
 };
+
 
 // Edit a question
 const editQuestion = async (req, res) => {
@@ -60,33 +113,31 @@ const deleteQuestion = async (req, res) => {
   }
 };
 
-
-// Controller to fetch questions for a specific course
+// Get questions for a specific course
 const getQuestions = async (req, res) => {
   try {
-    const courseId = req.params.courseId; // Use the string directly
-    console.log(courseId)
-    const questions = await Question.find({ courseId }); // Query with the string
+    const { courseId } = req.params;
+    console.log(courseId);
+    const questions = await Question.find({ courseId });
     res.json(questions);
-   
   } catch (error) {
     console.error('Error fetching questions:', error);
     res.status(500).json({ message: 'Error fetching questions' });
   }
 };
 
-
+// Submit responses for a course
 const submitResponses = async (req, res) => {
   try {
-    const { responses, studentId } = req.body; // Extract studentId from request body
-
+    const { responses, studentId } = req.body;
+console.log("Response of the question : ",responses)
     // Debugging statement
     console.log('User ID from token:', req.user);
-    console.log('Received studentId:', studentId); // Log the received studentId
+    console.log('Received studentId:', studentId);
 
     const newResponse = new Response({
       courseId: req.params.courseId,
-      studentId, // Use the studentId from the request body
+      studentId,
       responses,
     });
 
@@ -97,12 +148,14 @@ const submitResponses = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
+// Check if a student has submitted responses
 const hasSubmittedResponses = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const { studentId } = req.body; // Get studentId from the request body
+    const { studentId } = req.body;
 
-    console.log("student id : ", studentId);
+    console.log('student id : ', studentId);
 
     const response = await Response.findOne({ courseId, studentId });
 
@@ -117,7 +170,6 @@ const hasSubmittedResponses = async (req, res) => {
   }
 };
 
-
 module.exports = {
   addQuestion,
   getQuestionsByCourse,
@@ -125,5 +177,5 @@ module.exports = {
   deleteQuestion,
   getQuestions,
   submitResponses,
-  hasSubmittedResponses
+  hasSubmittedResponses,
 };

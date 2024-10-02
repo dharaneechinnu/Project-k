@@ -1,16 +1,38 @@
+// models/responseSchema.js
 const mongoose = require('mongoose');
 
 const responseSchema = new mongoose.Schema({
-  courseId: { type:Number, ref: 'Course', required: true },
-  studentId: { type: Number, ref: 'User', required: true },
+  courseId: {
+    type: String,
+    required: true,
+  },
+  studentId: {
+    type: String,
+    required: true,
+  },
   responses: [
     {
-      questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
-      answer: { type: String, required: true }, // or Array if you want to store multiple answers (e.g., for checkboxes)
-      questionText: { type: String }, // Optional, if you want to store the question text
-      options: { type: [String] }, // Optional, if you want to store the available options
+      questionId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Question',
+        required: true,
+      },
+      answerType: {
+        type: String,
+        enum: ['yes-no', 'short-text', 'multiple-choice'],
+        required: true,
+      },
+      answer: {
+        type: mongoose.Schema.Types.Mixed, // Can hold a string or an array depending on the question type
+        required: true,
+      },
     },
   ],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-module.exports = mongoose.model('Response', responseSchema);
+const Response = mongoose.model('Response', responseSchema);
+module.exports = Response;
