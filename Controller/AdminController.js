@@ -183,6 +183,8 @@ const registerUserByAdmin = async (req, res) => {
         pincode,
         whatappno,
         mobileno,
+        batchno,
+        paymentstatus
       } = req.body;
   
       // Check if email, WhatsApp number, or mobile number already exists
@@ -218,6 +220,8 @@ const registerUserByAdmin = async (req, res) => {
         gender,
         mobileno,
         whatappno,
+        batchno,
+        paymentstatus,
       });
   
       // Setup nodemailer to send email to the user
