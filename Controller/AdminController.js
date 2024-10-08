@@ -172,86 +172,85 @@ const deleteCourse = async (req, res) => {
 
 
 const registerUserByAdmin = async (req, res) => {
-  try {
-    const {
-      name,
-      email,
-      password,
-      age,
-      gender,
-      pincode,
-      whatappno,
-      mobileno,
-      batchNumber, // Add this field
-    } = req.body;
-
-    // Check if email, WhatsApp number, or mobile number already exists
-    const existingUser = await User.findOne({
-      $or: [{ email }, { whatappno }, { mobileno }],
-    });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
-    // Generate a studentId based on pincode
-    const studentIdBase = pincode.toString();
-    let uniqueCounter = 1;
-    let studentId = `${studentIdBase}${uniqueCounter}`;
-
-    // Ensure studentId is unique in the database
-    while (await User.findOne({ studentId })) {
-      uniqueCounter++;
-      studentId = `${studentIdBase}${uniqueCounter}`;
-    }
-
-    // Hash the password
-    const hashpwd = await bcrypt.hash(password, 10);
-
-    // Create the new user
-    const newUser = await User.create({
-      studentId,
-      name,
-      password: hashpwd,
-      email,
-      age,
-      pincode,
-      gender,
-      mobileno,
-      whatappno,
-      batches: [{ batchNumber }], // Add batch and course information
-    });
-
-    // Setup nodemailer to send email to the user
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'dharaneedharanchinnusamy@gmail.com', // Your Gmail address
-        pass: process.env.PASS, // Use environment variable for password
-      },
-    });
-
-    const mailOptions = {
-      from: 'dharaneedharanchinnusamy@gmail.com',
-      to: newUser.email,
-      subject: 'Welcome to Our Service!',
-      text: `Hello ${newUser.name},\n\nThank you for registering. Here are your credentials:\n\nEmail: ${newUser.email}\nPassword: ${password}\n\nWe recommend that you change your password after logging in for the first time.\n\nBest regards,\nYour App Team`,
-    };
-
-    // Send the email
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('Error sending registration email:', error);
-        return res.status(500).json({ message: 'User registered but failed to send email' });
+    try {
+      const {
+        name,
+        email,
+        password,
+        age,
+        gender,
+        pincode,
+        whatappno,
+        mobileno,
+      } = req.body;
+  
+      // Check if email, WhatsApp number, or mobile number already exists
+      const existingUser = await User.findOne({
+        $or: [{ email }, { whatappno }, { mobileno }],
+      });
+      if (existingUser) {
+        return res.status(400).json({ message: 'User already exists' });
       }
-
-      console.log('Registration email sent:', info.response);
-      res.status(200).json({ message: 'User registered successfully and email sent' });
-    });
-  } catch (error) {
-    console.error('Error registering user by admin:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
+  
+      // Generate a studentId based on pincode
+      const studentIdBase = pincode.toString();
+      let uniqueCounter = 1;
+      let studentId = `${studentIdBase}${uniqueCounter}`;
+  
+      // Ensure studentId is unique in the database
+      while (await User.findOne({ studentId })) {
+        uniqueCounter++;
+        studentId = `${studentIdBase}${uniqueCounter}`;
+      }
+  
+      // Hash the password
+      const hashpwd = await bcrypt.hash(password, 10);
+  
+      // Create the new user
+      const newUser = await User.create({
+        studentId,
+        name,
+        password: hashpwd,
+        email,
+        age,
+        pincode,
+        gender,
+        mobileno,
+        whatappno,
+      });
+  
+      // Setup nodemailer to send email to the user
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: "dharaneedharanchinnusamy@gmail.com", // Your Gmail address
+          pass: PASS // Password/App password from environment variable
+        }
+      });
+  
+      const mailOptions = {
+        from: "dharaneedharanchinnusamy@gmail.com",
+        to: newUser.email,
+        subject: "Welcome to Our Service!",
+        text: `Hello ${newUser.name},\n\nThank you for registering. Here are your credentials:\n\nEmail: ${newUser.email}\nPassword: ${password}\n\nWe recommend that you change your password after logging in for the first time.\n\nBest regards,\nYour App Team`
+      };
+  
+      // Send the email
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error sending registration email:", error);
+          return res.status(500).json({ message: "User registered but failed to send email" });
+        }
+  
+        console.log("Registration email sent:", info.response);
+        res.status(200).json({ message: 'User registered successfully and email sent' });
+      });
+      
+    } catch (error) {
+      console.error('Error registering user by admin:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  };
 
 
 

@@ -38,6 +38,14 @@ const userSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  batchno: {
+    type: String,
+    required: true,
+  },
+  paymentstatus: {
+    type: String,
+    required: true,
+  },
   otpToken: {
     type: String,
   },
