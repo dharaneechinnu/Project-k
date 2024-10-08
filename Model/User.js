@@ -52,16 +52,26 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
-  purchasedCourses: {
-    type: [Number],  // Array to store course IDs
-    default: [],     // Default to an empty array if no courses have been purchased
+  requestedCourses: {
+    type: [Number],  // Array to store course IDs the user has requested
+    default: [],
   },
-  // Added role-based access control
+  approvedCourses: {
+    type: [Number],  // Array to store course IDs approved by the admin
+    default: [],
+  },
+  batches: [
+    {
+      batchNumber: {
+        type: String, // Changed from Number to String
+        required: true,
+      },
+    },
+  ],
   role: {
     type: String,
-    role: ['student'], // Possible roles
-    default: 'student',  // Default role is student
-    required: true,
+    enum: ['student', 'admin'],
+    default: 'student',
   },
 });
 

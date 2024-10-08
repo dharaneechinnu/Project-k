@@ -2,61 +2,6 @@ const Question = require('../Model/Question'); // Assuming you have a Question m
 const Response = require('../Model/responseSchema ');
 
 
-// Add new questions
-const addQuestion = async (req, res) => {
-  try {
-    const { courseId, questions } = req.body;
-
-    // Validate courseId and questions
-    if (!courseId) {
-      throw new Error("courseId is required.");
-    }
-    if (!questions || !Array.isArray(questions) || questions.length === 0) {
-      throw new Error("Questions must be a non-empty array.");
-    }
-
-    // Iterate over each question and create a new Question document
-    const newQuestions = await Promise.all(questions.map(async (question) => {
-      const { questionText, answerType, options } = question;
-
-      // Debugging statements to verify incoming data
-      console.log('Received question:', question);
-
-      // Ensure questionText and answerType are provided
-      if (!questionText || !answerType) {
-        throw new Error("Each question must have a questionText and answerType.");
-      }
-
-      // Handle different question types
-      let formattedOptions = [];
-      if (answerType === 'multiple-choice') {
-        if (!Array.isArray(options) || options.length < 2) {
-          throw new Error("Multiple-choice questions must have at least two options.");
-        }
-        formattedOptions = options.map((opt) => ({
-          optionText: opt.optionText || 'Option', // Ensure each option has a text value
-        }));
-      } else if (answerType === 'yes-no') {
-        formattedOptions = [{ optionText: 'Yes' }, { optionText: 'No' }];
-      }
-
-      // Create and save the new question
-      const newQuestion = new Question({
-        courseId,
-        questionText,
-        answerType, // Use the correct field name 'answerType'
-        options: formattedOptions,
-      });
-
-      return await newQuestion.save();
-    }));
-
-    res.status(201).json(newQuestions);
-  } catch (error) {
-    console.error('Error adding questions:', error);
-    res.status(500).json({ message: 'Failed to add questions', error: error.message });
-  }
-};
 
 const getQuestionsByCourse = async (req, res) => {
   try {
@@ -83,35 +28,6 @@ const getQuestionsByCourse = async (req, res) => {
 };
 
 
-// Edit a question
-const editQuestion = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedQuestion = await Question.findByIdAndUpdate(id, req.body, { new: true });
-    if (!updatedQuestion) {
-      return res.status(404).json({ message: 'Question not found' });
-    }
-    res.json(updatedQuestion);
-  } catch (error) {
-    console.error('Error editing question:', error);
-    res.status(500).json({ message: 'Failed to edit question' });
-  }
-};
-
-// Delete a question
-const deleteQuestion = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deletedQuestion = await Question.findByIdAndDelete(id);
-    if (!deletedQuestion) {
-      return res.status(404).json({ message: 'Question not found' });
-    }
-    res.json({ message: 'Question deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting question:', error);
-    res.status(500).json({ message: 'Failed to delete question' });
-  }
-};
 
 // Get questions for a specific course
 const getQuestions = async (req, res) => {
@@ -171,10 +87,9 @@ const hasSubmittedResponses = async (req, res) => {
 };
 
 module.exports = {
-  addQuestion,
+
   getQuestionsByCourse,
-  editQuestion,
-  deleteQuestion,
+
   getQuestions,
   submitResponses,
   hasSubmittedResponses,

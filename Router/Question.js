@@ -11,17 +11,10 @@ const {
 } = require('../Controller/QuestionController');
 const verifyToken = require('../Middleware/authMiddleware'); // Adjust path as necessary
 
-// Add a new question
-router.post('/add-form', addQuestion); // Protect this route
 
 // Get questions by course ID
 router.get('/questions/course/:courseId', getQuestionsByCourse); // Protect this route
 
-// Edit a question
-router.put('/edit-question/:id', editQuestion); // Protect this route
-
-// Delete a question
-router.delete('/delete-question/:id', deleteQuestion); // Protect this route
 
 // Route to fetch questions for a specific course
 router.get('/courses/:courseId/questions', getQuestions); // Protect this route
