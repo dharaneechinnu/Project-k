@@ -1,7 +1,7 @@
 const Admin = require('../Model/Admin');
 const User = require('../Model/User'); 
 const Course = require('../Model/Course');
-const Transaction = require('../Model/Transaction');
+const Transaction = require('../Model/RequestandApprove');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const PASS = process.env.PASS;
@@ -374,33 +374,46 @@ const getAllCourseRequests = async (req, res) => {
 };
 
 
-// Approve a course request for a user
+// Approve a course request for a user and store the transaction
 const approveCourseRequest = async (req, res) => {
-  const { userId, courseId } = req.body;
+  const { userId, courseId, batchno } = req.body; // Assuming batch number is passed from frontend
 
   try {
-      const user = await User.findById(userId);
-      if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-      }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-      // Check if the course is already approved
-      if (user.approvedCourses.includes(courseId)) {
-          return res.status(400).json({ message: 'Course already approved' });
-      }
+    // Check if the course is already approved
+    if (user.approvedCourses.includes(courseId)) {
+      return res.status(400).json({ message: 'Course already approved' });
+    }
 
-      // Add the course ID to the approved courses
-      user.approvedCourses.push(courseId);
+    // Add the course ID to the approved courses
+    user.approvedCourses.push(courseId);
 
-      // Remove the course ID from requested courses
-      user.requestedCourses = user.requestedCourses.filter(id => id !== courseId);
+    // Remove the course ID from requested courses
+    user.requestedCourses = user.requestedCourses.filter(id => id !== courseId);
 
-      await user.save();
+    // Save the user data after modification
+    await user.save();
 
-      return res.status(200).json({ message: 'Course request approved', approvedCourses: user.approvedCourses });
+    // Create a new transaction for the approved course
+    const newTransaction = new Transaction({
+      studentId: userId,
+      courseId,
+      courseName: 'Course Name', // Replace with the actual course name if available in the request
+      batchno, // Assuming batch number is passed
+      transactionDate: Date.now(), // Current date/time
+    });
+
+    // Save the transaction
+    await newTransaction.save();
+
+    return res.status(200).json({ message: 'Course request approved', approvedCourses: user.approvedCourses });
   } catch (error) {
-      console.error('Error approving course request:', error);
-      return res.status(500).json({ message: 'Error approving course request' });
+    console.error('Error approving course request:', error);
+    return res.status(500).json({ message: 'Error approving course request' });
   }
 };
 

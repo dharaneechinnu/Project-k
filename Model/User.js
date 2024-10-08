@@ -39,12 +39,7 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   batchno: {
-    type: String,
-    required: true,
-  },
-  paymentstatus: {
-    type: String,
-    required: true,
+    type: String
   },
   otpToken: {
     type: String,
@@ -62,10 +57,6 @@ const userSchema = new mongoose.Schema({
   },
   requestedCourses: {
     type: [Number],  // Array to store course IDs the user has requested
-    default: [],
-  },
-  approvedCourses: {
-    type: [Number],  // Array to store course IDs approved by the admin
     default: [],
   },
   batches: [

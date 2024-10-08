@@ -3,7 +3,7 @@ const Course = require('../Model/Course');
 const User = require('../Model/User');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
-const Transaction = require('../Model/Transaction')
+const Transaction = require('../Model/RequestandApprove')
 const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
 const RAZORPAY_SECRET = process.env.RAZORPAY_SECRET;
 
