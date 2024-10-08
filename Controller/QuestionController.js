@@ -42,43 +42,58 @@ const getQuestions = async (req, res) => {
   }
 };
 
-// Submit responses for a course
-const submitResponses = async (req, res) => {
+const submitDailyResponses = async (req, res) => {
   try {
     const { responses, studentId } = req.body;
-console.log("Response of the question : ",responses)
-    // Debugging statement
-    console.log('User ID from token:', req.user);
-    console.log('Received studentId:', studentId);
+    const { courseId } = req.params;
 
-    const newResponse = new Response({
-      courseId: req.params.courseId,
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize the time to midnight to compare only by date
+
+    // Check if the student has already submitted responses for the current day
+    const existingResponse = await Response.findOne({
       studentId,
+      courseId,
+      submissionDate: { $gte: today }, // Find submissions made on or after today (same day)
+    });
+
+    if (existingResponse) {
+      return res.status(400).json({ message: 'You have already submitted responses for today.' });
+    }
+
+    // Create and save the new response for today
+    const newResponse = new Response({
+      studentId,
+      courseId,
       responses,
+      submissionDate: new Date(), // Store the exact submission time
     });
 
     await newResponse.save();
-    res.json({ message: 'Responses submitted successfully!' });
+    res.status(200).json({ message: 'Responses submitted successfully for today!' });
   } catch (error) {
-    console.error('Error submitting responses:', error);
+    console.error('Error submitting daily responses:', error);
     res.status(500).send('Server error');
   }
 };
 
-// Check if a student has submitted responses
-const hasSubmittedResponses = async (req, res) => {
+const hasSubmittedToday = async (req, res) => {
   try {
-    const { courseId } = req.params;
-    const { studentId } = req.body;
+    const { studentId, courseId } = req.body;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize the time to check by date only
 
-    console.log('student id : ', studentId);
+    const existingResponse = await Response.findOne({
+      studentId,
+      courseId,
+      submissionDate: { $gte: today },
+    });
 
-    const response = await Response.findOne({ courseId, studentId });
-
-    if (response) {
-      return res.status(200).json({ hasSubmitted: true });
+    if (existingResponse) {
+      return res.status(200).json({ hasSubmittedToday: true });
     } else {
-      return res.status(200).json({ hasSubmitted: false });
+      return res.status(200).json({ hasSubmittedToday: false });
     }
   } catch (error) {
     console.error('Error checking submission:', error);
@@ -86,11 +101,12 @@ const hasSubmittedResponses = async (req, res) => {
   }
 };
 
+
 module.exports = {
 
   getQuestionsByCourse,
 
   getQuestions,
-  submitResponses,
-  hasSubmittedResponses,
+  submitDailyResponses,
+  hasSubmittedToday,
 };

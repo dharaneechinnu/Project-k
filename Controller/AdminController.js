@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const PASS = process.env.PASS;
 const nodemailer = require('nodemailer');
 const Question = require('../Model/Question')
+const RequestandApprove = require('../Model/RequestandApprove')
 // Admin Login Controller
 const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
@@ -182,6 +183,7 @@ const registerUserByAdmin = async (req, res) => {
         pincode,
         whatappno,
         mobileno,
+        batchno
       } = req.body;
   
       // Check if email, WhatsApp number, or mobile number already exists
@@ -217,6 +219,7 @@ const registerUserByAdmin = async (req, res) => {
         gender,
         mobileno,
         whatappno,
+        batchno
       });
   
       // Setup nodemailer to send email to the user
@@ -232,7 +235,7 @@ const registerUserByAdmin = async (req, res) => {
         from: "dharaneedharanchinnusamy@gmail.com",
         to: newUser.email,
         subject: "Welcome to Our Service!",
-        text: `Hello ${newUser.name},\n\nThank you for registering. Here are your credentials:\n\nEmail: ${newUser.email}\nPassword: ${password}\n\nWe recommend that you change your password after logging in for the first time.\n\nBest regards,\nYour App Team`
+        text: `Hello ${newUser.name},\n\nThank you for registering. Here are your credentials:\n\nEmail: ${newUser.email}\nPassword: ${password}\n\n And You allocated to this batch No: ${batchno} We recommend that you change your password after logging in for the first time.\n\nBest regards,\nYour App Team`
       };
   
       // Send the email
@@ -345,77 +348,74 @@ const unlockCourse = async (req, res) => {
 };
 
 
-// Get all course requests
 const getAllCourseRequests = async (req, res) => {
   try {
-    const users = await User.find({ requestedCourses: { $exists: true, $ne: [] } }, 'name email studentId requestedCourses batches');
-    const courseRequests = [];
+    // Fetch all course requests from the RequestandApprove schema
+    const courseRequests = await RequestandApprove.find({ approve: false }) // Only fetching requests that are not yet approved
+      .populate('studentId', 'name email studentId') // Populate user details from User schema
+      .populate('courseId', 'courseName') // Populate course details from Course schema
+      .lean(); // Using .lean() for better performance since we're not modifying the results
 
-    users.forEach(user => {
-      user.requestedCourses.forEach(courseId => {
-        const batchNumber = user.batches.find(batch => batch.courseId === courseId)?.batchNumber || 'N/A'; // Fetching the batch number
-        courseRequests.push({
-          _id: user._id,
-          userId: user._id,
-          userName: user.name,
-          userEmail: user.email,
-          studentId: user.studentId, // Add student ID to response
-          courseId: courseId,
-          batchNumber: batchNumber, // Add batch number to response
-        });
-      });
-    });
+    // Prepare response structure
+    const formattedRequests = courseRequests.map(request => ({
+      _id: request._id,
+      userId: request.studentId,
+      userName: request.name,
+      userEmail: request.email,
+      studentId: request.studentId.studentId,
+      courseId: request.courseId,
+      courseName: request.courseName,
+      batchNumber: request.Bacthno || 'N/A', // Add batch number if available
+      transactionDate: request.transactionDate,
+    }));
 
-    res.status(200).json(courseRequests);
+    // Send the response with all course requests
+    res.status(200).json(formattedRequests);
   } catch (error) {
     console.error('Error fetching all course requests:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-
-// Approve a course request for a user and store the transaction
 const approveCourseRequest = async (req, res) => {
-  const { userId, courseId, batchno } = req.body; // Assuming batch number is passed from frontend
+  const { userId, courseId } = req.body; // Expect the userId and courseId to be passed in the request body
+
+  if (!userId || !courseId) {
+    return res.status(400).json({ message: 'User ID and Course ID are required' });
+  }
 
   try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    // Find the course request in the RequestandApprove collection
+    const request = await RequestandApprove.findOne({ studentId: userId, courseId });
+
+    if (!request) {
+      return res.status(404).json({ message: 'Course request not found' });
     }
 
-    // Check if the course is already approved
-    if (user.approvedCourses.includes(courseId)) {
+    // Check if the course has already been approved
+    if (request.approve) {
       return res.status(400).json({ message: 'Course already approved' });
     }
 
-    // Add the course ID to the approved courses
-    user.approvedCourses.push(courseId);
+    // Only approve after all checks and operations are successful
+    request.approve = true;
+    request.approvedAt = Date.now(); // Store the current time as the approvedAt timestamp
 
-    // Remove the course ID from requested courses
-    user.requestedCourses = user.requestedCourses.filter(id => id !== courseId);
+    // Save the updated request
+    await request.save();
 
-    // Save the user data after modification
-    await user.save();
-
-    // Create a new transaction for the approved course
-    const newTransaction = new Transaction({
-      studentId: userId,
-      courseId,
-      courseName: 'Course Name', // Replace with the actual course name if available in the request
-      batchno, // Assuming batch number is passed
-      transactionDate: Date.now(), // Current date/time
-    });
-
-    // Save the transaction
-    await newTransaction.save();
-
-    return res.status(200).json({ message: 'Course request approved', approvedCourses: user.approvedCourses });
+    return res.status(200).json({ message: 'Course approved successfully' });
   } catch (error) {
+    if (error.kind === 'ObjectId') {
+      // Handle the case where an invalid ObjectId is provided
+      return res.status(400).json({ message: 'Invalid User ID or Course ID format' });
+    }
     console.error('Error approving course request:', error);
-    return res.status(500).json({ message: 'Error approving course request' });
+    return res.status(500).json({ message: 'Error approving course request', error });
   }
 };
+
+
 
 module.exports = {
   loginAdmin,

@@ -39,7 +39,8 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   batchno: {
-    type: String
+    type: String,
+    required:true,
   },
   otpToken: {
     type: String,
@@ -55,18 +56,6 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
-  requestedCourses: {
-    type: [Number],  // Array to store course IDs the user has requested
-    default: [],
-  },
-  batches: [
-    {
-      batchNumber: {
-        type: String, // Changed from Number to String
-        required: true,
-      },
-    },
-  ],
   role: {
     type: String,
     enum: ['student', 'admin'],

@@ -1,13 +1,14 @@
-// models/responseSchema.js
 const mongoose = require('mongoose');
 
 const responseSchema = new mongoose.Schema({
   courseId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId, // Assuming you use ObjectId for course references
+    ref: 'Course',
     required: true,
   },
   studentId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId, // Assuming you use ObjectId for student references
+    ref: 'User',
     required: true,
   },
   responses: [
@@ -28,11 +29,13 @@ const responseSchema = new mongoose.Schema({
       },
     },
   ],
-  createdAt: {
+  submissionDate: {
     type: Date,
-    default: Date.now,
+    default: Date.now, // Automatically store the date of submission
   },
 });
+
+responseSchema.index({ studentId: 1, courseId: 1, submissionDate: 1 }, { unique: true });
 
 const Response = mongoose.model('Response', responseSchema);
 module.exports = Response;

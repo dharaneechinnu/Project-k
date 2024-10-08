@@ -6,8 +6,8 @@ const {
   editQuestion,
   deleteQuestion,
   getQuestions,
-  submitResponses,
-  hasSubmittedResponses
+  submitDailyResponses,
+  hasSubmittedToday
 } = require('../Controller/QuestionController');
 const verifyToken = require('../Middleware/authMiddleware'); // Adjust path as necessary
 
@@ -19,8 +19,10 @@ router.get('/questions/course/:courseId', getQuestionsByCourse); // Protect this
 // Route to fetch questions for a specific course
 router.get('/courses/:courseId/questions', getQuestions); // Protect this route
 
-// Submit responses (protected)
-router.post('/courses/:courseId/submit-responses', verifyToken, submitResponses);
-router.post('/courses/:courseId/has-submitted', hasSubmittedResponses);
+// Submit daily responses for a course
+router.post('/courses/:courseId/submit-daily-responses', submitDailyResponses);
+
+// Check if a student has submitted responses for a course today
+router.post('/courses/:courseId/has-submitted-today', hasSubmittedToday);
 
 module.exports = router;
