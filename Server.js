@@ -30,7 +30,7 @@ app.use('/course',courseRoutes)
 app.use('/response',responseRoutes)
 
 
-//API Admin Route
+//API Admin Routes
 
 app.use('/Admin',require('./Router/AdminRoute'))
 
