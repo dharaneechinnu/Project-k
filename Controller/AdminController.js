@@ -39,7 +39,7 @@ const loginAdmin = async (req, res) => {
     res.status(200).json({ message: 'Login successful', adminToken, admin: adminData });
   } catch (error) {
     console.error('Error during admin login:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' ,status:error});
   }
 };
 
