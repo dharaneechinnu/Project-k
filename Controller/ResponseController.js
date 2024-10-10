@@ -1,6 +1,5 @@
-// controllers/responseController.js
 const Question = require('../Model/Question');
-const Response = require('../Model/responseSchema ');
+const Response = require('../Model/responseSchema '); // Assuming your schema is named 'Response'
 
 // Controller function to handle responses submission
 const submitResponses = async (req, res) => {
@@ -24,6 +23,7 @@ const submitResponses = async (req, res) => {
         throw new Error(`Question with ID ${response.questionId} does not exist.`);
       }
 
+      // Validation based on question type
       if (question.answerType === 'yes-no') {
         if (response.answer !== 'Yes' && response.answer !== 'No') {
           throw new Error(`Invalid response for yes-no question. Expected 'Yes' or 'No'.`);
@@ -57,6 +57,8 @@ const submitResponses = async (req, res) => {
     res.status(500).json({ message: 'Error submitting responses', error: error.message });
   }
 };
+
+// Controller function to provide analytics
 const analytics = async (req, res) => {
   const { courseId, studentId } = req.params;
 
@@ -72,7 +74,7 @@ const analytics = async (req, res) => {
       response.responses.forEach((item) => {
         const questionIdStr = item.questionId._id.toString();
 
-        // If the question is not in the map, initialize it
+        // Initialize the map for each question
         if (!questionAnalytics.has(questionIdStr)) {
           questionAnalytics.set(questionIdStr, {
             questionId: item.questionId._id,
@@ -85,7 +87,7 @@ const analytics = async (req, res) => {
           });
         }
 
-        // Get the existing analytics data for this question
+        // Retrieve the current analytics for the question
         const questionData = questionAnalytics.get(questionIdStr);
 
         // Update counts based on the answer type
@@ -123,7 +125,6 @@ const analytics = async (req, res) => {
     res.status(500).json({ message: 'Error fetching analytics' });
   }
 };
-
 
 module.exports = {
   submitResponses,

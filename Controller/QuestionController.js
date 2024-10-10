@@ -27,67 +27,71 @@ const getQuestionsByCourse = async (req, res) => {
   }
 };
 
-
-
-// Get questions for a specific course
+// Get questions for a specific course (same questions every day)
 const getQuestions = async (req, res) => {
   try {
     const { courseId } = req.params;
-    console.log(courseId);
-    const questions = await Question.find({ courseId });
-    res.json(questions);
+    const questions = await Question.find({ courseId }); // Always fetch the same questions for the course
+
+    if (!questions.length) {
+      return res.status(404).json({ message: 'No questions found for this course.' });
+    }
+
+    res.status(200).json(questions);
   } catch (error) {
     console.error('Error fetching questions:', error);
     res.status(500).json({ message: 'Error fetching questions' });
   }
 };
 
+// Submit daily responses
 const submitDailyResponses = async (req, res) => {
   try {
     const { responses, studentId } = req.body;
     const { courseId } = req.params;
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize the time to midnight to compare only by date
+    today.setHours(0, 0, 0, 0); // Normalize to midnight
 
-    // Check if the student has already submitted responses for the current day
+    // Check if the student has already submitted responses today
     const existingResponse = await Response.findOne({
       studentId,
       courseId,
-      submissionDate: { $gte: today }, // Find submissions made on or after today (same day)
+      submissionDate: { $gte: today }
     });
 
     if (existingResponse) {
       return res.status(400).json({ message: 'You have already submitted responses for today.' });
     }
 
-    // Create and save the new response for today
+    // Create a new response
     const newResponse = new Response({
       studentId,
       courseId,
       responses,
-      submissionDate: new Date(), // Store the exact submission time
+      submissionDate: new Date()
     });
 
     await newResponse.save();
-    res.status(200).json({ message: 'Responses submitted successfully for today!' });
+    res.status(200).json({ message: 'Responses submitted successfully!' });
   } catch (error) {
-    console.error('Error submitting daily responses:', error);
-    res.status(500).send('Server error');
+    console.error('Error submitting responses:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
+// Check if the student has submitted today
 const hasSubmittedToday = async (req, res) => {
   try {
-    const { studentId, courseId } = req.body;
-    
+    const  { studentId, courseId } = req.body;
+    console.log("studentId : ",studentId,"courseid : ",courseId);
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize the time to check by date only
+    today.setHours(0, 0, 0, 0); // Normalize to midnight
 
     const existingResponse = await Response.findOne({
       studentId,
       courseId,
-      submissionDate: { $gte: today },
+      submissionDate: { $gte: today }
     });
 
     if (existingResponse) {
@@ -97,10 +101,9 @@ const hasSubmittedToday = async (req, res) => {
     }
   } catch (error) {
     console.error('Error checking submission:', error);
-    res.status(500).send('Server error');
+    res.status(500).json({ message: 'Server error' });
   }
 };
-
 
 module.exports = {
 

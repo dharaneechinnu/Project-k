@@ -1,41 +1,17 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
-const responseSchema = new mongoose.Schema({
-  courseId: {
-    type: mongoose.Schema.Types.ObjectId, // Assuming you use ObjectId for course references
-    ref: 'Course',
-    required: true,
-  },
-  studentId: {
-    type: mongoose.Schema.Types.ObjectId, // Assuming you use ObjectId for student references
-    ref: 'User',
-    required: true,
-  },
+const ResponseSchema = new Schema({
+  courseId: { type: Number, required: true },
+  studentId: { type: Number, required: true },
   responses: [
     {
-      questionId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Question',
-        required: true,
-      },
-      answerType: {
-        type: String,
-        enum: ['yes-no', 'short-text', 'multiple-choice'],
-        required: true,
-      },
-      answer: {
-        type: mongoose.Schema.Types.Mixed, // Can hold a string or an array depending on the question type
-        required: true,
-      },
-    },
+      questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
+      answerType: { type: String, enum: ['yes-no', 'multiple-choice', 'short-text'], required: true },
+      answer: Schema.Types.Mixed // Can store different types depending on the question type
+    }
   ],
-  submissionDate: {
-    type: Date,
-    default: Date.now, // Automatically store the date of submission
-  },
+  submissionDate: { type: Date, default: Date.now }
 });
 
-responseSchema.index({ studentId: 1, courseId: 1, submissionDate: 1 }, { unique: true });
-
-const Response = mongoose.model('Response', responseSchema);
-module.exports = Response;
+module.exports = mongoose.model('Response', ResponseSchema);

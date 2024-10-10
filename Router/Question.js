@@ -16,13 +16,15 @@ const verifyToken = require('../Middleware/authMiddleware'); // Adjust path as n
 router.get('/questions/course/:courseId', getQuestionsByCourse); // Protect this route
 
 
-// Route to fetch questions for a specific course
-router.get('/courses/:courseId/questions', getQuestions); // Protect this route
 
-// Submit daily responses for a course
+// Fetch questions for a specific course
+router.get('/courses/:courseId/questions', getQuestions);
+
+// Submit daily responses for a specific course
 router.post('/courses/:courseId/submit-daily-responses', submitDailyResponses);
 
-// Check if a student has submitted responses for a course today
+// Check if the student has submitted responses today
 router.post('/courses/:courseId/has-submitted-today', hasSubmittedToday);
+
 
 module.exports = router;
