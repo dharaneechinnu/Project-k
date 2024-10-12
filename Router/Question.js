@@ -9,11 +9,11 @@ const {
   submitDailyResponses,
   hasSubmittedToday
 } = require('../Controller/QuestionController');
-const verifyToken = require('../Middleware/authMiddleware'); // Adjust path as necessary
+const verifyToken = require('../Middleware/AdminMiddleware'); // Adjust path as necessary
 
 
 // Get questions by course ID
-router.get('/questions/course/:courseId', getQuestionsByCourse); // Protect this route
+router.get('/questions/course/:courseId',verifyToken, getQuestionsByCourse); // Protect this route
 
 
 

@@ -49,13 +49,17 @@ const register = async (req, res) => {
         age,
         gender,
         pincode,
-        whatappno,
+        whatsappno, // Fix: corrected typo here
         mobileno,
+        batchno
       } = req.body;
+  
+      console.log(whatsappno); // Now correctly logging the field
+      console.log(batchno); // Now correctly logging the field
   
       // Check if email, WhatsApp number, or mobile number already exists
       const existingUser = await usermodel.findOne({
-        $or: [{ email }, { whatappno }, { mobileno }],
+        $or: [{ email }, { whatsappno }, { mobileno }], // Fix: corrected typo here
       });
       if (existingUser) {
         return res.status(400).json({ message: 'User already exists' });
@@ -84,8 +88,9 @@ const register = async (req, res) => {
         age,
         pincode,
         gender,
+        batchno,
         mobileno,
-        whatappno,
+        whatsappno, // Fix: corrected typo here
       });
   
       res.status(200).json({ message: 'User registered successfully' });
@@ -94,6 +99,7 @@ const register = async (req, res) => {
       res.status(500).json({ message: 'Internal server error' });
     }
   };
+  
   
 
 const gtpOtps = async (req, res) => {

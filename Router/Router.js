@@ -4,7 +4,7 @@ const router = express.Router();
 
 
 router.route('/login').post(require('../Controller/AuthController').login);
-router.route('/register').post(require('../Controller/AuthController').register);
+
 router.route('/generate-otp').post(require('../Controller/AuthController').gtpOtps);
 router.route('/verify-otp').post(require('../Controller/AuthController').Verifyotp);
 router.route('/reset-password').post(require('../Controller/AuthController').resetPassword);

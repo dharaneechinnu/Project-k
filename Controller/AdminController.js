@@ -28,20 +28,27 @@ const loginAdmin = async (req, res) => {
     }
 
     const adminToken = jwt.sign(
-      { id: admin._id, role: admin.role },
+      { role: admin.role },
       process.env.ADMIN_TOKEN,
       { expiresIn: '1h' }
     );
 
+    // Convert admin to plain object and remove sensitive fields
     const adminData = admin.toObject();
     delete adminData.password;
+    delete adminData._id;  // Remove the MongoDB ID
 
-    res.status(200).json({ message: 'Login successful', adminToken, admin: adminData });
+    res.status(200).json({
+      message: 'Login successful',
+      adminToken,
+      admin: adminData
+    });
   } catch (error) {
     console.error('Error during admin login:', error);
-    res.status(500).json({ message: 'Internal server error' ,status:error});
+    res.status(500).json({ message: 'Internal server error', status: error });
   }
 };
+
 
 // Admin Register Controller
 const registerAdmin = async (req, res) => {

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { getCourse, RequestCourse,getUnlockedCourses,denyCourseRequest,getEnrolled,GetCompleted } = require('../Controller/Course');
+const verifyToken = require('../Middleware/AdminMiddleware');
 
 // Route to get all courses
-router.get('/get-courses', getCourse);
+router.get('/get-courses',verifyToken, getCourse);
 
 // Route to request a course (should be POST)
 router.post('/request-course', RequestCourse);

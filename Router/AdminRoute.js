@@ -1,43 +1,55 @@
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
+const verifyToken = require('../Middleware/AdminMiddleware'); // Import the middleware
+const { 
+  getAllUsers, 
+  loginAdmin, 
+  registerAdmin, 
+  getAdminStats, 
+  GetAllcourse, 
+  addCourse, 
+  editCourse, 
+  deleteCourse, 
+  registerUserByAdmin, 
+  addQuestion, 
+  editQuestion, 
+  deleteQuestion, 
+  unlockCourse, 
+  approveCourseRequest, 
+  getAllCourseRequests 
+} = require('../Controller/AdminController'); // Import controller functions
 
-const {addQuestion ,editQuestion,deleteQuestion,unlockCourse,approveCourseRequest,getAllCourseRequests} =require('../Controller/AdminController')
-
-//login and register
-router.route('/adminlogin').post(require('../Controller/AdminController').loginAdmin)
-router.route('/adminregister').post(require('../Controller/AdminController').registerAdmin)
-
-
-//user all Details Get
-router.route('/alluser').get(require('../Controller/AdminController').getAllUsers);
-router.route('/stats').get(require('../Controller/AdminController').getAdminStats);
-router.route('/GetAllcourses').get(require('../Controller/AdminController').GetAllcourse);
-
-
-
-router.route('/upload-course').post(require('../Controller/AdminController').addCourse);
-router.route('/courses/:courseId').put(require('../Controller/AdminController').editCourse);
-router.route('/courses/:courseId').delete(require('../Controller/AdminController').deleteCourse)
-
-//admin to regsiter
-
-router.route('/userRegsiter').post(require('../Controller/AdminController').registerUserByAdmin)
+const { register } = require('../Controller/AuthController'); // Import the register controller
 
 
 
+// Login and Register routes (don't need token verification)
+router.route('/adminlogin').post(loginAdmin);
+router.route('/adminregister').post(registerAdmin);
+router.route('/register').post(verifyToken, register);
 
-// Add a new question
-router.post('/add-form', addQuestion); // Protect this route
-// Edit a question
-router.put('/edit-question/:id', editQuestion); // Protect this route
+// Protect routes with verifyToken middleware
+router.route('/alluser').get(verifyToken, getAllUsers); // Get all users (protected)
+router.route('/stats').get(verifyToken, getAdminStats); // Admin stats (protected)
+router.route('/GetAllcourses').get(verifyToken, GetAllcourse); // Get all courses (protected)
 
-// Delete a question
-router.delete('/delete-question/:id', deleteQuestion); // Protect this route
+// Admin course management routes (protected)
+router.route('/upload-course').post(verifyToken, addCourse); 
+router.route('/courses/:courseId').put(verifyToken, editCourse); 
+router.route('/courses/:courseId').delete(verifyToken, deleteCourse);
 
-//Unlock Course
-router.put('/unlock-course', unlockCourse);
-router.get('/get-all-course-requests', getAllCourseRequests);
-router.post('/approve-course-request', approveCourseRequest); // Add this line for approving course requests
+// Admin register user (protected)
+router.route('/userRegsiter').post(verifyToken, registerUserByAdmin);
+
+// Question management routes (protected)
+router.post('/add-form', verifyToken, addQuestion); 
+router.put('/edit-question/:id', verifyToken, editQuestion); 
+router.delete('/delete-question/:id', verifyToken, deleteQuestion); 
+
+// Unlock course and approve course requests (protected)
+router.put('/unlock-course', verifyToken, unlockCourse);
+router.get('/get-all-course-requests', verifyToken, getAllCourseRequests);
+router.post('/approve-course-request', verifyToken, approveCourseRequest);
 
 module.exports = router;

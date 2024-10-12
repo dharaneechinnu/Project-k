@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  whatappno: {
+  whatsappno: { // Fix: corrected typo here
     type: Number,
     required: true,
   },
@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema({
   },
   batchno: {
     type: String,
-    required:true,
+    required: true,
   },
   otpToken: {
     type: String,
