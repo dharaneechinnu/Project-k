@@ -4,7 +4,7 @@ const { getCourse, RequestCourse,getUnlockedCourses,denyCourseRequest,getEnrolle
 const verifyToken = require('../Middleware/AdminMiddleware');
 
 // Route to get all courses
-router.get('/get-courses',verifyToken, getCourse);
+router.get('/get-courses', getCourse);
 
 // Route to request a course (should be POST)
 router.post('/request-course', RequestCourse);
