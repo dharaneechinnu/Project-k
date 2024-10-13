@@ -40,66 +40,7 @@ const login = async (req, res) => {
     }
 };
 
-const register = async (req, res) => {
-    try {
-      const {
-        name,
-        email,
-        password,
-        age,
-        gender,
-        pincode,
-        whatsappno, // Fix: corrected typo here
-        mobileno,
-        batchno
-      } = req.body;
-  
-      console.log(whatsappno); // Now correctly logging the field
-      console.log(batchno); // Now correctly logging the field
-  
-      // Check if email, WhatsApp number, or mobile number already exists
-      const existingUser = await usermodel.findOne({
-        $or: [{ email }, { whatsappno }, { mobileno }], // Fix: corrected typo here
-      });
-      if (existingUser) {
-        return res.status(400).json({ message: 'User already exists' });
-      }
-  
-      // Generate a studentId based on pincode
-      const studentIdBase = pincode.toString();
-      let uniqueCounter = 1;
-      let studentId = `${studentIdBase}${uniqueCounter}`;
-  
-      // Ensure studentId is unique in the database
-      while (await usermodel.findOne({ studentId })) {
-        uniqueCounter++;
-        studentId = `${studentIdBase}${uniqueCounter}`;
-      }
-  
-      // Hash the password
-      const hashpwd = await bcrypt.hash(password, 10);
-  
-      // Create the new user
-      await usermodel.create({
-        studentId,
-        name,
-        password: hashpwd,
-        email,
-        age,
-        pincode,
-        gender,
-        batchno,
-        mobileno,
-        whatsappno, // Fix: corrected typo here
-      });
-  
-      res.status(200).json({ message: 'User registered successfully' });
-    } catch (error) {
-      console.error('Error registering usersss:', error);
-      res.status(500).json({ message: 'Internal server error' });
-    }
-  };
-  
+
   
 
 const gtpOtps = async (req, res) => {
@@ -305,4 +246,4 @@ const respassword = async (req, res) => {
 
   
 
-module.exports ={login,register,gtpOtps,resetPassword,Verifyotp,respassword}
+module.exports ={login,gtpOtps,resetPassword,Verifyotp,respassword}

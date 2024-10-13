@@ -17,17 +17,14 @@ const {
   deleteQuestion, 
   unlockCourse, 
   approveCourseRequest, 
-  getAllCourseRequests 
+  getAllCourseRequests,register
 } = require('../Controller/AdminController'); // Import controller functions
-
-const { register } = require('../Controller/AuthController'); // Import the register controller
 
 
 
 // Login and Register routes (don't need token verification)
 router.route('/adminlogin').post(loginAdmin);
 router.route('/adminregister').post(registerAdmin);
-router.route('/register').post(verifyToken, register);
 
 // Protect routes with verifyToken middleware
 router.route('/alluser').get(verifyToken, getAllUsers); // Get all users (protected)
