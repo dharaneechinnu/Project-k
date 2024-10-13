@@ -17,9 +17,10 @@ const {
   deleteQuestion, 
   unlockCourse, 
   approveCourseRequest, 
-  getAllCourseRequests,register
+  getAllCourseRequests,getUserResponses
 } = require('../Controller/AdminController'); // Import controller functions
 
+router.get('/responses/:studentId', getUserResponses);
 
 
 // Login and Register routes (don't need token verification)

@@ -1,13 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const {
-  addQuestion,
+
   getQuestionsByCourse,
-  editQuestion,
-  deleteQuestion,
+
   getQuestions,
-  submitDailyResponses,
-  hasSubmittedToday
+  submitResponses
 } = require('../Controller/QuestionController');
 const verifyToken = require('../Middleware/AdminMiddleware'); // Adjust path as necessary
 
@@ -21,10 +19,7 @@ router.get('/questions/course/:courseId',verifyToken, getQuestionsByCourse); // 
 router.get('/courses/:courseId/questions', getQuestions);
 
 // Submit daily responses for a specific course
-router.post('/courses/:courseId/submit-daily-responses', submitDailyResponses);
-
-// Check if the student has submitted responses today
-router.post('/courses/:courseId/has-submitted-today', hasSubmittedToday);
+router.post('/courses/:courseId/submit-daily-responses', submitResponses);
 
 
 module.exports = router;

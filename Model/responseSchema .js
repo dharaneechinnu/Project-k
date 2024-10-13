@@ -6,13 +6,13 @@ const ResponseSchema = new Schema({
   studentId: { type: Number, required: true },
   responses: [
     {
-      question: { type: String, }, // Store the full question text instead of ref
+      questionText: { type: String, required: true }, // Store the full question text
       answerType: { type: String, enum: ['yes-no', 'multiple-choice', 'short-text'], required: true },
       answer: Schema.Types.Mixed, // Store answer based on question type
       responseDate: { type: Date, default: Date.now } // Date for each individual response
     }
   ],
-  submissionDate: { type: Date, default: null} // Overall submission date
+  submissionDate: { type: Date, default: null } // Overall submission date
 });
 
 module.exports = mongoose.model('Response', ResponseSchema);

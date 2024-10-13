@@ -44,72 +44,65 @@ const getQuestions = async (req, res) => {
   }
 };
 
-// Submit daily responses
-const submitDailyResponses = async (req, res) => {
+const submitResponses = async (req, res) => {
+  const { courseId } = req.params; // Extract courseId and studentId from params
+  const { responses ,studentId} = req.body; // Get the responses from the request body
+console.log(studentId,courseId)
   try {
-    const { responses, studentId } = req.body;
-    const { courseId } = req.params;
+    // Log the incoming responses to check the structure
+    console.log('Received responses:', responses);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize to midnight
-
-    // Check if the student has already submitted responses today
-    const existingResponse = await Response.findOne({
-      studentId,
-      courseId,
-      submissionDate: { $gte: today }
-    });
-
-    if (existingResponse) {
-      return res.status(400).json({ message: 'You have already submitted responses for today.' });
+    // Check if responses exist and are in the correct format
+    if (!Array.isArray(responses) || responses.length === 0) {
+      return res.status(400).json({ message: 'No responses provided or invalid format.' });
     }
 
-    // Create a new response
-    const newResponse = new Response({
-      studentId,
-      courseId,
-      responses,
-      submissionDate: new Date()
+    // Find the existing response document for the given course and student
+    let responseDoc = await Response.findOne({ courseId, studentId });
+
+    if (!responseDoc) {
+      // If no document exists, create a new one
+      responseDoc = new Response({
+        courseId,
+        studentId,
+        responses: [], // Initialize the responses as an empty array
+      });
+    }
+
+    // Loop through the new responses and append to the responses array
+    responses.forEach((newResponse) => {
+      // Check if all required fields are present in the new response
+      if (!newResponse.questionText || !newResponse.answerType || typeof newResponse.answer === 'undefined') {
+        throw new Error('Missing required fields in one or more responses.');
+      }
+
+      // Push the new response to the responses array (we don't check if the question exists)
+      responseDoc.responses.push({
+        questionText: newResponse.questionText,
+        answerType: newResponse.answerType,
+        answer: newResponse.answer,
+        responseDate: new Date(),
+      });
     });
 
-    await newResponse.save();
-    res.status(200).json({ message: 'Responses submitted successfully!' });
+    // Update the overall submission date
+    responseDoc.submissionDate = new Date();
+
+    // Save the updated document
+    await responseDoc.save();
+
+    res.status(200).json({ message: 'Responses stored successfully!' });
   } catch (error) {
-    console.error('Error submitting responses:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error storing responses:', error);
+    res.status(500).json({ message: 'Error storing responses', error: error.message });
   }
 };
 
-// Check if the student has submitted today
-const hasSubmittedToday = async (req, res) => {
-  try {
-    const  { studentId, courseId } = req.body;
-    console.log("studentId : ",studentId,"courseid : ",courseId);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize to midnight
-
-    const existingResponse = await Response.findOne({
-      studentId,
-      courseId,
-      submissionDate: { $gte: today }
-    });
-
-    if (existingResponse) {
-      return res.status(200).json({ hasSubmittedToday: true });
-    } else {
-      return res.status(200).json({ hasSubmittedToday: false });
-    }
-  } catch (error) {
-    console.error('Error checking submission:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
 
 module.exports = {
 
   getQuestionsByCourse,
 
   getQuestions,
-  submitDailyResponses,
-  hasSubmittedToday,
+  submitResponses,
 };

@@ -8,6 +8,7 @@ const PASS = process.env.PASS;
 const nodemailer = require('nodemailer');
 const Question = require('../Model/Question')
 const RequestandApprove = require('../Model/RequestandApprove')
+const Response = require('../Model/responseSchema ')
 // Admin Login Controller
 const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
@@ -426,7 +427,22 @@ const approveCourseRequest = async (req, res) => {
   }
 };
 
+// Controller to get responses for a specific studentId
+const getUserResponses = async (req, res) => {
+  const { studentId } = req.params;
+  try {
+    const responses = await Response.findOne({ studentId: parseInt(studentId) });
+    
+    if (!responses) {
+      return res.status(404).json({ message: 'No responses found for this student' });
+    }
 
+    res.json(responses);
+  } catch (error) {
+    console.error('Error fetching responses:', error);
+    res.status(500).json({ message: 'Error fetching responses' });
+  }
+};
 
 module.exports = {
   loginAdmin,
@@ -443,5 +459,6 @@ module.exports = {
   addQuestion,
   unlockCourse,
   getAllCourseRequests,
-  approveCourseRequest
+  approveCourseRequest,
+  getUserResponses
 };
