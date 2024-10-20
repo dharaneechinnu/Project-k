@@ -17,7 +17,8 @@ const {
   deleteQuestion, 
   unlockCourse, 
   approveCourseRequest, 
-  getAllCourseRequests,getUserResponses
+  getAllCourseRequests,getUserResponses,
+  updateUserDetails,completeCourse,denyCourseRequest
 } = require('../Controller/AdminController'); // Import controller functions
 
 router.get('/responses/:studentId', getUserResponses);
@@ -39,6 +40,7 @@ router.route('/courses/:courseId').delete(verifyToken, deleteCourse);
 
 // Admin register user (protected)
 router.route('/userRegsiter').post(verifyToken, registerUserByAdmin);
+router.patch('/user/:studentId', verifyToken, updateUserDetails);
 
 // Question management routes (protected)
 router.post('/add-form', verifyToken, addQuestion); 
@@ -49,5 +51,9 @@ router.delete('/delete-question/:id', verifyToken, deleteQuestion);
 router.put('/unlock-course', verifyToken, unlockCourse);
 router.get('/get-all-course-requests', verifyToken, getAllCourseRequests);
 router.post('/approve-course-request', verifyToken, approveCourseRequest);
+// Complete a course (protected)
+router.post('/complete-course', verifyToken, completeCourse); // Add this line
+// Add a deny course request route (protected)
+router.post('/deny-course-request', verifyToken, denyCourseRequest); // Add this line
 
 module.exports = router;
