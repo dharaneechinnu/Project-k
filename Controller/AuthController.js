@@ -4,8 +4,6 @@ const jwt = require('jsonwebtoken');
 const PASS = process.env.PASS;
 const nodemailer = require('nodemailer');
 
-
-
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -30,7 +28,18 @@ const login = async (req, res) => {
                 { expiresIn: '1d' }
             );
 
-            res.status(200).json({ accessToken, user: userWithoutPassword });
+            // Send accessToken, name, mobileno, and role to the frontend
+            res.status(200).json({
+                accessToken,
+                user: {
+                    name: user.name,
+                    mobileno: user.mobileno,
+                    email: user.email, // Include email if needed
+                    studentId: user.studentId, // Optionally include other fields
+                    role: user.role,
+                    batchno: user.batchno,
+                }
+            });
         } else {
             res.status(400).json({ message: "Enter valid Password" });
         }

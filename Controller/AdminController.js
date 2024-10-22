@@ -267,7 +267,29 @@ const registerUserByAdmin = async (req, res) => {
   }
 };
 
+// Update user details by studentId
+const updateUserDetails = async (req, res) => {
+  const { studentId } = req.params;
+  const { name, email, age, mobileno, batchno } = req.body;
 
+  try {
+    // Find user by studentId and update details
+    const updatedUser = await User.findOneAndUpdate(
+      { studentId }, // Find the user by studentId
+      { name, email, age, mobileno, batchno }, // Fields to update
+      { new: true, runValidators: true } // Return updated document
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'User updated successfully', updatedUser });
+  } catch (error) {
+    console.error('Error updating user details:', error);
+    res.status(500).json({ message: 'Failed to update user details' });
+  }
+};
 
   // Edit a question
 const editQuestion = async (req, res) => {
@@ -359,46 +381,104 @@ const unlockCourse = async (req, res) => {
   }
 };
 
-
 const getAllCourseRequests = async (req, res) => {
   try {
-    // Fetch all course requests from the RequestandApprove schema
-    const courseRequests = await RequestandApprove.find({ approve: false }) // Only fetching requests that are not yet approved
-      .populate('studentId', 'name email studentId') // Populate user details from User schema
-      .populate('courseId', 'courseName') // Populate course details from Course schema
-      .lean(); // Using .lean() for better performance since we're not modifying the results
+   
+    const pendingRequests = await RequestandApprove.find({ approve: false }) 
+      .populate('studentId', 'name email studentId mobileno') 
+      .populate('courseId', 'courseName') 
+      .lean(); 
 
-    // Prepare response structure
-    const formattedRequests = courseRequests.map(request => ({
+      const approvedRequests = await RequestandApprove.find({ approve: true, COurseComplete: false })
+      .populate('studentId', 'name email studentId mobileno')
+      .populate('courseId', 'courseName')
+      .lean();
+
+    const formattedPendingRequests = pendingRequests.map(request => ({
       _id: request._id,
-      userId: request.studentId,
-      userName: request.name,
-      userEmail: request.email,
-      studentId: request.studentId.studentId,
+      userName: request.name, 
+      userEmail: request.email, 
+      mobileno: request.mobileno, 
+      studentId: request.studentId,
       courseId: request.courseId,
       courseName: request.courseName,
-      batchNumber: request.Bacthno || 'N/A', // Add batch number if available
+      approve: request.approve,
+      batchNumber: request.Bacthno || 'N/A', 
       transactionDate: request.transactionDate,
     }));
 
-    // Send the response with all course requests
-    res.status(200).json(formattedRequests);
+    const formattedApprovedRequests = approvedRequests.map(request => ({
+      _id: request._id,
+      userName: request.name,
+      userEmail: request.email,
+      mobileno: request.mobileno, 
+      studentId: request.studentId,
+      courseId: request.courseId,
+      courseName: request.courseName,
+      approve: request.approve,
+      batchNumber: request.Bacthno || 'N/A',
+      transactionDate: request.transactionDate,
+    }));
+
+   
+    res.status(200).json({
+      pendingRequests: formattedPendingRequests,
+      approvedRequests: formattedApprovedRequests
+    });
   } catch (error) {
     console.error('Error fetching all course requests:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-const approveCourseRequest = async (req, res) => {
-  const { userId, courseId } = req.body; // Expect the userId and courseId to be passed in the request body
 
-  if (!userId || !courseId) {
+const completeCourse = async (req, res) => {
+  const { courseId, studentId } = req.body;
+  
+  // Debugging information
+  console.log(`Marking course as complete for Student ID: ${studentId} and Course ID: ${courseId}`);
+
+  try {
+    // Find the course request by studentId and courseId
+    const courseRequest = await RequestandApprove.findOne({ studentId: studentId, courseId });
+
+    // Check if the course request exists
+    if (!courseRequest) {
+      return res.status(404).json({ message: 'Course request not found' });
+    }
+
+    // Check if the course is already completed
+    if (courseRequest.COurseComplete) {
+      return res.status(400).json({ message: 'Course already marked as complete' });
+    }
+
+    // Mark the course as complete and set the completed date
+    courseRequest.COurseComplete = true;
+    courseRequest.completedAt = new Date();  // Ensure Date type is used
+
+    // Save the updated course request
+    await courseRequest.save();
+
+    return res.status(200).json({ message: 'Course marked as complete successfully' });
+  } catch (error) {
+    // Log any errors
+    console.error('Error completing course:', error);
+    
+    return res.status(500).json({ message: 'An error occurred while completing the course' });
+  }
+};
+
+
+const approveCourseRequest = async (req, res) => {
+  const { studentId, courseId } = req.body; // Expect the userId and courseId to be passed in the request body
+      console.log("Approve for : ",studentId,courseId);
+  if (!studentId || !courseId) {
     return res.status(400).json({ message: 'User ID and Course ID are required' });
   }
 
   try {
     // Find the course request in the RequestandApprove collection
-    const request = await RequestandApprove.findOne({ studentId: userId, courseId });
+    const request = await RequestandApprove.findOne({ studentId: studentId, courseId });
 
     if (!request) {
       return res.status(404).json({ message: 'Course request not found' });
@@ -424,6 +504,31 @@ const approveCourseRequest = async (req, res) => {
     }
     console.error('Error approving course request:', error);
     return res.status(500).json({ message: 'Error approving course request', error });
+  }
+};
+
+const denyCourseRequest = async (req, res) => {
+  const { studentId, courseId } = req.body; // Expect the userId and courseId in the request body
+console.log(studentId,courseId)
+  if (!studentId || !courseId) {
+    return res.status(400).json({ message: 'User ID and Course ID are required' });
+  }
+
+  try {
+    // Find the course request in the RequestandApprove collection
+    const request = await RequestandApprove.findOne({ studentId: studentId, courseId });
+
+    if (!request) {
+      return res.status(404).json({ message: 'Course request not found' });
+    }
+
+    // Delete the course request (or mark it as denied based on your requirements)
+    await RequestandApprove.deleteOne({ studentId: studentId, courseId });
+
+    return res.status(200).json({ message: 'Course request denied successfully' });
+  } catch (error) {
+    console.error('Error denying course request:', error);
+    return res.status(500).json({ message: 'Error denying course request', error });
   }
 };
 
@@ -565,5 +670,8 @@ module.exports = {
   unlockCourse,
   getAllCourseRequests,
   approveCourseRequest,
-  getUserResponses
+  getUserResponses,
+  updateUserDetails,
+  completeCourse,
+  denyCourseRequest
 };
